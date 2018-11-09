@@ -175,3 +175,10 @@ class Executor(executor.Executor):
 
     def get_event_details(self, event_type, event_name):
         return None  # To be implemented if needed
+
+    @staticmethod
+    def default_failure_handling(failure_context):
+        pass  # TODO
+
+    def prepare_submittable(self, submittable, *args, **kwargs):
+        return submittable

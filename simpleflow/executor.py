@@ -1,11 +1,16 @@
 import abc
 import logging
 
+from typing import TYPE_CHECKING
+
+from future.utils import with_metaclass
+
 from ._decorators import deprecated
 
-if False:
-    from typing import Type
+if TYPE_CHECKING:
+    from typing import Type, Optional
     from simpleflow import Workflow
+    from simpleflow.task import TaskFailureContext
 
 __all__ = ['Executor']
 
@@ -13,7 +18,7 @@ __all__ = ['Executor']
 logger = logging.getLogger(__name__)
 
 
-class Executor(object):
+class Executor(with_metaclass(abc.ABCMeta)):
     """
     Abstract class that describes the interface to manage the execution of
     a workflow.
@@ -32,8 +37,6 @@ class Executor(object):
     - asynchronous with full replay
 
     """
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, workflow_class):
         # type: (Type[Workflow]) -> None
         """
@@ -57,9 +60,7 @@ class Executor(object):
 
     def create_workflow(self):
         if self._workflow is None:
-            workflow = self._workflow_class(self)
-            if False:
-                assert isinstance(workflow, Workflow)
+            workflow = self._workflow_class(self)  # type: Workflow
             self._workflow = workflow
 
     def run_workflow(self, *args, **kwargs):
@@ -184,3 +185,13 @@ class Executor(object):
     @abc.abstractmethod
     def get_event_details(self, event_type, event_name):
         raise NotImplementedError
+
+    @staticmethod
+    @abc.abstractmethod
+    def default_failure_handling(failure_context):
+        # type: (TaskFailureContext) -> Optional[TaskFailureContext]
+        pass
+
+    @abc.abstractmethod
+    def prepare_submittable(self, submittable, *args, **kwargs):
+        pass
